@@ -1,0 +1,6 @@
+# Virtual environment
+venv/
+
+# Folder data
+data/
+data-0/

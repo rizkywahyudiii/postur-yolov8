@@ -1,0 +1,10 @@
+--extra-index-url https://download.pytorch.org/whl/cu118
+
+torch
+torchvision
+ultralytics
+opencv-python
+numpy
+pandas
+matplotlib
+scikit-learn
