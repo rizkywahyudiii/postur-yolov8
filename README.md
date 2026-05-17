@@ -67,26 +67,33 @@ Alih-alih mengeluarkan peringatan biner (Bungkuk/Tegak), sistem mengekstrak data
 3. Install PyTorch untuk RTX 3050 (contoh CUDA 11.8): `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
 4. Install Ultralytics & dependensi: `pip install ultralytics opencv-python numpy pandas matplotlib`
 
-### Struktur Direktori Proyek:
+### Struktur Direktori Proyek (Standar YOLOv8 & Roboflow):
 ```text
-posture-analytics-project/
+cv-posture/                 # Root direktori proyek
 │
-├── venv/                   # Folder Virtual Environment (Jangan di-commit ke Git)
-├── data/                   # Dataset lokal
-│   ├── raw/                # Dataset asli (gambar + label YOLO)
-│   └── processed/          # Dataset yang sudah di-preprocess/augmentasi
+├── venv/                   # Folder Virtual Environment (Ignored by Git)
+├── data/                   # Dataset berformat standar YOLOv8
+│   ├── train/              # Data Latih (70%)
+│   │   ├── images/         # Kumpulan gambar .jpg/.png
+│   │   └── labels/         # Kumpulan file anotasi .txt
+│   ├── valid/              # Data Validasi (20%)
+│   │   ├── images/
+│   │   └── labels/
+│   ├── test/               # Data Uji (10%)
+│   │   ├── images/
+│   │   └── labels/
+│   └── data.yaml           # File konfigurasi utama (path & definisi kelas)
 │
-├── notebooks/              # Jupyter notebooks untuk eksperimen & testing algoritma sudut
-│   └── 01_yolo_testing.ipynb
+├── notebooks/              # Jupyter notebooks untuk riset & eksperimen
+│   └── main.ipynb          # Pipeline inisialisasi, preprocessing, dan training
 │
-├── src/                    # Source code utama
-│   ├── detect_pose.py      # Script untuk inference YOLO
-│   ├── calc_angle.py       # Script hitungan matematika sudut leher/punggung
-│   └── tracker.py          # Script simulasi sesi (ngambil frame per menit)
+├── runs/                   # Direktori output otomatis dari Ultralytics YOLO
+│   └── detect/
+│       └── posture_mvp_final/ # Hasil training: model bobot (best.pt) & grafik metrik
 │
-├── models/                 # Tempat menyimpan file model hasil training (.pt atau .onnx)
-│   └── best_yolov8_posture.pt
+├── src/                    # Source code utama (Tahap Integrasi)
+│   ├── inference.py        # Script untuk menjalankan model deteksi
+│   └── tracker.py          # Script simulasi log waktu background
 │
-├── .gitignore              # Mengabaikan venv, data/, dan __pycache__
-├── requirements.txt        # Daftar library (pip freeze > requirements.txt)
+├── .gitignore              # Mengabaikan venv, data/, runs/, dan __pycache__
 └── README.md               # Dokumentasi utama proyek
