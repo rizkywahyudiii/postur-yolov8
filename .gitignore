@@ -6,3 +6,20 @@ data/
 data-0/
 data-1/
 runs/
+notebook/
+notebooks-dump/
+
+# Model weights and artifacts
+*.pt
+*.pth
+*.onnx
+*.h5
+*.tflite
+yolov8*.pt
+models/
+weights/
+
+# Cache and editor files
+.DS_Store
+.cache/
+.ipynb_checkpoints/
