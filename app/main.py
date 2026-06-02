@@ -19,6 +19,8 @@ from analytics import (
 
 from report import generate_pdf_report
 
+from docs_sync import sync_session_data
+
 
 # ============================================================
 # CONFIGURATION
@@ -26,17 +28,17 @@ from report import generate_pdf_report
 
 # DEMO MODE
 # True  = 1 capture per second
-# False = 1 capture per minute
+# False = 30 seconds per capture
 
 DEMO_MODE = True
 
 if DEMO_MODE:
 
-    CAPTURE_INTERVAL = 1
+    CAPTURE_INTERVAL = 1.0
 
 else:
 
-    CAPTURE_INTERVAL = 60
+    CAPTURE_INTERVAL = 30.0
 
 
 # ============================================================
@@ -250,7 +252,7 @@ while True:
     )
 
     # ========================================================
-    # EXIT
+    # KEYBOARD INTERACTION
     # ========================================================
 
     key = cv2.waitKey(1)
@@ -258,6 +260,14 @@ while True:
     if key == ord("q"):
 
         break
+
+    elif key == ord("s") or key == ord("S"):
+
+        import os
+        screenshot_path = "../docs/assets/latest/latest-demo.png"
+        os.makedirs(os.path.dirname(screenshot_path), exist_ok=True)
+        cv2.imwrite(screenshot_path, annotated_frame)
+        print(f"📸 Screenshot saved to {screenshot_path}")
 
 
 # ============================================================
@@ -314,6 +324,14 @@ pdf_path = generate_pdf_report(
     capture_count
 
 )
+
+
+# ============================================================
+# AUTO SYNC DOCUMENTATION WEBSITE
+# ============================================================
+
+sync_session_data(analysis, csv_path, pdf_path, graph_path)
+
 
 print("\n✅ SESSION COMPLETE")
 print(f"📄 CSV : {csv_path}")

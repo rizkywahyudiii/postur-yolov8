@@ -1,3 +1,5 @@
+Implementasi YOLOv8-Pose Untuk Analitik Longitudinal Degradasi Postur Duduk Berbasis Sudut Tubuh Sebagai Indikator Kelelahan
+
 # BAB I — PENDAHULUAN
 
 ## 1.1 Latar Belakang

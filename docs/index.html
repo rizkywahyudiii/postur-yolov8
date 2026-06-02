@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SI-POSTURE — Silent Longitudinal Posture Analytics</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Style Link -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- Header Navigation Section -->
+    <header class="app-header">
+        <div class="header-logo">
+            <span class="logo-dot"></span>
+            <h1>SI-POSTURE</h1>
+            <span class="logo-badge">Research Showcase</span>
+        </div>
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="dataset">Dataset</button>
+            <button class="tab-btn" data-tab="training">Training</button>
+            <button class="tab-btn" data-tab="analytics">Analytics</button>
+            <button class="tab-btn" data-tab="realtime">Realtime Demo</button>
+            <button class="tab-btn" data-tab="reports">Session Reports</button>
+        </nav>
+    </header>
+
+    <!-- Navigation Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Main Viewport Container -->
+    <main class="main-container">
+
+        <!-- 1. OVERVIEW TAB -->
+        <section class="tab-content active" id="overview">
+            <div class="pane-left">
+                <div class="content-wrapper">
+                    <p class="section-tag">INTRODUCTION & GOALS</p>
+                    <h2 class="tab-title">Silent Longitudinal Posture Analytics</h2>
+                    <p class="tab-desc">
+                        A passive, AI-powered system designed to run silently in the background of study or work sessions. Unlike noisy real-time alerting systems that disrupt user focus, this research focuses on longitudinal tracking of sitting posture quality to prevent Musculoskeletal Disorders (MSDs) such as kyphosis, lower back pain, and shoulder strain.
+                    </p>
+                    
+                    <div class="metrics-grid">
+                        <div class="m-card">
+                            <div class="m-val">~17.5</div>
+                            <div class="m-label">Inference FPS (RTX 3050)</div>
+                        </div>
+                        <div class="m-card">
+                            <div class="m-val">4</div>
+                            <div class="m-label">Custom Keypoints</div>
+                        </div>
+                        <div class="m-card">
+                            <div class="m-val">30s</div>
+                            <div class="m-label">Periodic Log Snapshots</div>
+                        </div>
+                    </div>
+
+                    <div class="card-glass">
+                        <h3>Research Objectives</h3>
+                        <ul class="bullet-list">
+                            <li>Passive ergonomic assessment without continuous notification alerts.</li>
+                            <li>Detection of spine curvature bend points under prolonged laptop usage.</li>
+                            <li>Historical sessions reporting to aid clinical and user ergonomics.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="pane-right">
+                <div class="card-visual">
+                    <h3 class="visual-title">Data Processing Pipeline Flow</h3>
+                    
+                    <div class="pipeline-container">
+                        <div class="pipe-node glow-blue">
+                            <div class="pipe-idx">01</div>
+                            <div class="pipe-name">Webcam Input</div>
+                            <div class="pipe-desc">Direct Video Stream</div>
+                        </div>
+                        <div class="pipe-arrow">➔</div>
+                        <div class="pipe-node glow-purple">
+                            <div class="pipe-idx">02</div>
+                            <div class="pipe-name">YOLOv8 Pose</div>
+                            <div class="pipe-desc">Deep Learning Model</div>
+                        </div>
+                        <div class="pipe-arrow">➔</div>
+                        <div class="pipe-node glow-cyan">
+                            <div class="pipe-idx">03</div>
+                            <div class="pipe-name">Keypoint extraction</div>
+                            <div class="pipe-desc">Hip, Spine, Shoulder, Head</div>
+                        </div>
+                    </div>
+
+                    <div class="pipeline-connector">▼</div>
+
+                    <div class="pipeline-container">
+                        <div class="pipe-node glow-orange">
+                            <div class="pipe-idx">06</div>
+                            <div class="pipe-name">PDF / CSV Reports</div>
+                            <div class="pipe-desc">Longitudinal Sync</div>
+                        </div>
+                        <div class="pipe-arrow">↵</div>
+                        <div class="pipe-node glow-green">
+                            <div class="pipe-idx">05</div>
+                            <div class="pipe-name">Ergo Score Engine</div>
+                            <div class="pipe-desc">Continuous Penalty Math</div>
+                        </div>
+                        <div class="pipe-arrow">↵</div>
+                        <div class="pipe-node glow-magenta">
+                            <div class="pipe-idx">04</div>
+                            <div class="pipe-name">Smoothing Filter</div>
+                            <div class="pipe-desc">20-Frame Rolling Average</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. DATASET TAB -->
+        <section class="tab-content" id="dataset">
+            <div class="pane-left">
+                <div class="content-wrapper">
+                    <p class="section-tag">DATA ENGINEERING</p>
+                    <h2 class="tab-title">Primary Dataset & Annotations</h2>
+                    <p class="tab-desc">
+                        Ergonomic sitting postures were captured using custom webcam devices under a range of lighting conditions and vertical/horizontal camera tilts. Roboflow was used for high-fidelity pose keypoint annotations.
+                    </p>
+                    
+                    <div class="card-glass">
+                        <h3>Keypoint Definitions</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Keypoint ID</th>
+                                    <th>Anatomical Marker</th>
+                                    <th>Physical Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge-tag tag-blue">KP0</span></td>
+                                    <td>Hip</td>
+                                    <td>Pelvic seating anchor reference</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-tag tag-cyan">KP3</span></td>
+                                    <td>Spine</td>
+                                    <td>Detects lumbar curvature bends</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-tag tag-purple">KP1</span></td>
+                                    <td>Shoulder</td>
+                                    <td>Upper back alignment reference</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-tag tag-orange">KP2</span></td>
+                                    <td>Head</td>
+                                    <td>Forward tilt & cervical inclination</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="pane-right">
+                <div class="card-visual">
+                    <h3 class="visual-title">Visual Annotations & Spatial Distribution</h3>
+                    <div class="side-grid">
+                        <div class="img-card">
+                            <img src="assets/dataset/sekleton-pose.png" alt="Skeleton Pose Anotation" />
+                            <div class="img-caption">Custom 4-Keypoint Skeletal Map</div>
+                        </div>
+                        <div class="img-card">
+                            <img src="assets/dataset/keypoint-distribution-heatmap.png" alt="Keypoint Heatmap" />
+                            <div class="img-caption">Keypoint Spatial Coordinate Distribution</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. TRAINING TAB -->
+        <section class="tab-content" id="training">
+            <div class="pane-left">
+                <div class="content-wrapper">
+                    <p class="section-tag">DEEP LEARNING MODEL</p>
+                    <h2 class="tab-title">YOLOv8-Pose Performance</h2>
+                    <p class="tab-desc">
+                        A customized Ultralytics YOLOv8 nano pose architecture was trained using PyTorch CUDA acceleration for 150 epochs. No overfitting is visible, ensuring high generalizability under different clothes, silhouettes, and lighting.
+                    </p>
+
+                    <div class="metrics-grid">
+                        <div class="m-card">
+                            <div class="m-val text-green">97.8%</div>
+                            <div class="m-label">Pose mAP50</div>
+                        </div>
+                        <div class="m-card">
+                            <div class="m-val text-cyan">98.0%</div>
+                            <div class="m-label">Precision</div>
+                        </div>
+                        <div class="m-card">
+                            <div class="m-val text-purple">86.0%</div>
+                            <div class="m-label">Recall</div>
+                        </div>
+                    </div>
+
+                    <div class="card-glass">
+                        <h3>Generalizability Details</h3>
+                        <p class="detail-text">
+                            The generalization error is extremely low. The final <strong>Validation Loss Gap</strong> is capped at just <strong>0.023</strong>. This verifies the model is robust to background changes, minor occlusions, and clothing variations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="pane-right">
+                <div class="card-visual">
+                    <h3 class="visual-title">Model Training Metrics & Validations</h3>
+                    <div class="training-media-container">
+                        <div class="media-row">
+                            <div class="media-box">
+                                <img src="assets/training/training-vs-validation-loss.png" alt="Loss Curves" />
+                                <div class="img-caption">Train vs Val Loss Curve</div>
+                            </div>
+                            <div class="media-box">
+                                <img src="assets/training/evaluation-metrics-per-epoch.png" alt="mAP Curve" />
+                                <div class="img-caption">Epoch Validation Metrics</div>
+                            </div>
+                        </div>
+                        <div class="media-full mt-2">
+                            <img src="assets/training/multisample-class-bad.png" alt="Multi-sample training labels" />
+                            <div class="img-caption">Batch Predictions (slouching detections)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ANALYTICS TAB -->
+        <section class="tab-content" id="analytics">
+            <div class="pane-left">
+                <div class="content-wrapper">
+                    <p class="section-tag">MATHEMATICAL ENGINE</p>
+                    <h2 class="tab-title">Continuous Posture Physics</h2>
+                    <p class="tab-desc">
+                        We calculate body angles using trigonometric coordinate vectors. Scoring operates dynamically on a continuous scale to prevent artificial data discontinuities in longitudinal charts.
+                    </p>
+
+                    <div class="card-glass">
+                        <h3>Geometrical Formulas</h3>
+                        <div class="formula-block">
+                            <div class="f-item">
+                                <span class="f-title">Weighted Torso Angle:</span>
+                                <code class="f-code">θ_torso = (θ_lower_spine * 0.3) + (θ_upper_spine * 0.7)</code>
+                            </div>
+                            <div class="f-item">
+                                <span class="f-title">Upper back segment (Spine ➔ Shoulder):</span>
+                                <code class="f-code">θ_upper_spine = atan2(abs(x_shoulder - x_spine), abs(y_spine - y_shoulder))</code>
+                            </div>
+                            <div class="f-item">
+                                <span class="f-title">Lower back segment (Hip ➔ Spine):</span>
+                                <code class="f-code">θ_lower_spine = atan2(abs(x_spine - x_hip), abs(y_hip - y_spine))</code>
+                            </div>
+                            <div class="f-item">
+                                <span class="f-title">Neck Inclination Angle (Shoulder ➔ Head):</span>
+                                <code class="f-code">θ_neck = atan2(abs(x_head - x_shoulder), abs(y_shoulder - y_head))</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pane-right">
+                <div class="card-visual">
+                    <h3 class="visual-title">Geometric Curvature Analysis</h3>
+                    <div class="side-grid">
+                        <div class="img-card">
+                            <img src="assets/analytics/posture-analysis.png" alt="Posture angle keypoints diagram" />
+                            <div class="img-caption">Skeletal Angles Coordinate Extraction</div>
+                        </div>
+                        <div class="img-card">
+                            <img src="assets/analytics/posture-severity-analysis.png" alt="Continuous scoring mapping" />
+                            <div class="img-caption">Discrete vs Continuous Loss Penalties</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. REALTIME TAB -->
+        <section class="tab-content" id="realtime">
+            <div class="pane-left">
+                <div class="content-wrapper">
+                    <p class="section-tag">ACTIVE MONITORING</p>
+                    <h2 class="tab-title">Realtime Video Inference</h2>
+                    <p class="tab-desc">
+                        The live camera loop runs continuous pose predictions. It instantly overlays estimated skeletal vectors, computed joint inclination degrees, continuous scores, and postural classifications.
+                    </p>
+
+                    <div class="card-glass">
+                        <h3>Interactive Captures</h3>
+                        <p class="detail-text">
+                            Pressing the hotkey <kbd>S</kbd> inside the camera display window will instantly take a snapshot of the current frame and write it directly to the dashboard assets, immediately updating the visual on the right.
+                        </p>
+                    </div>
+
+                    <div class="card-glass mt-3">
+                        <h3>Status Threshold Map</h3>
+                        <ul class="status-legend">
+                            <li><span class="color-dot bg-green"></span> <strong>Excellent (Score &ge; 80):</strong> Back upright, minimal slouching detected.</li>
+                            <li><span class="color-dot bg-orange"></span> <strong>Moderate (Score &ge; 60):</strong> Slight shoulder tilt or head tilt.</li>
+                            <li><span class="color-dot bg-red"></span> <strong>Poor (Score &lt; 60):</strong> Significant spine curvature or forward neck slouch.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="pane-right">
+                <div class="card-visual">
+                    <h3 class="visual-title">Live Demonstration Overlay</h3>
+                    <div class="screenshot-box">
+                        <img id="realtimeScreenshot" src="assets/latest/latest-demo.png" alt="Realtime Active Demonstration Frame" />
+                        <div class="screenshot-overlay" id="screenshotOverlay">
+                            <span>Live screenshot sync active. Press 'S' in application to update.</span>
+                        </div>
+                    </div>
+                    <div class="img-caption" id="screenshotCaption">Active frame capture from the latest demonstration session.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. REPORTS TAB -->
+        <section class="tab-content" id="reports">
+            <div class="pane-left">
+                <div class="content-wrapper">
+                    <p class="section-tag">SESSION RESULTS</p>
+                    <h2 class="tab-title">Longitudinal Session Summary</h2>
+                    <p class="tab-desc">
+                        Longitudinal metrics are automatically synchronized from python immediately upon completing a work or study session. Renders all key ergonomics and fatigue metrics dynamically.
+                    </p>
+
+                    <div class="reports-grid">
+                        <!-- Summary Stats Card -->
+                        <div class="card-glass card-report-left">
+                            <h3 class="report-block-title">Session Metrics</h3>
+                            <div class="report-metric-row">
+                                <span class="rm-label">Session Finished:</span>
+                                <span class="rm-val text-white" id="rep-timestamp">N/A</span>
+                            </div>
+                            <div class="report-metric-row">
+                                <span class="rm-label">Average Score:</span>
+                                <span class="rm-val text-green" id="rep-avg">N/A</span>
+                            </div>
+                            <div class="report-metric-row">
+                                <span class="rm-label">Minimum Score:</span>
+                                <span class="rm-val text-red" id="rep-min">N/A</span>
+                            </div>
+                            <div class="report-metric-row">
+                                <span class="rm-label">Maximum Score:</span>
+                                <span class="rm-val text-cyan" id="rep-max">N/A</span>
+                            </div>
+                            <div class="report-metric-row">
+                                <span class="rm-label">Fatigue Onset Index:</span>
+                                <span class="rm-val text-orange" id="rep-fatigue">N/A</span>
+                            </div>
+                        </div>
+
+                        <!-- System Status Card -->
+                        <div class="card-glass card-report-right">
+                            <h3 class="report-block-title">System Status</h3>
+                            <div class="status-row">
+                                <span class="status-dot green-glow"></span>
+                                <div>
+                                    <div class="st-name">YOLOv8 Pose Model</div>
+                                    <div class="st-desc">Weights best.pt • Active</div>
+                                </div>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-dot green-glow"></span>
+                                <div>
+                                    <div class="st-name">Analytics Engine</div>
+                                    <div class="st-desc">Moving average active</div>
+                                </div>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-dot green-glow"></span>
+                                <div>
+                                    <div class="st-name">PDF Report Generator</div>
+                                    <div class="st-desc">Reportlab templates • Ready</div>
+                                </div>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-dot green-glow"></span>
+                                <div>
+                                    <div class="st-name">Documentation Sync</div>
+                                    <div class="st-desc">Assets and JSON synced</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a id="viewPdfBtn" href="assets/latest/latest_report.pdf" target="_blank" class="btn-action-pdf mt-3">
+                        📄 View Latest PDF Report
+                    </a>
+                </div>
+            </div>
+            <div class="pane-right">
+                <div class="card-visual">
+                    <h3 class="visual-title">Session Posture Degradation Graph</h3>
+                    <div class="graph-box">
+                        <img id="sessionGraph" src="assets/latest/posture_graph.png" alt="Session Trend Analysis Chart" />
+                    </div>
+                    <div class="img-caption">Dual-axis historical chart showing smoothed scores and physical angles.</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Information Section -->
+    <footer class="app-footer">
+        <div class="footer-left">
+            <p>AI Posture Analytics System &copy; 2026 • Computer Vision Research</p>
+        </div>
+        <div class="footer-right">
+            <span class="footer-tag">YOLOv8 Pose</span>
+            <span class="footer-tag">4 Custom Keypoints</span>
+            <span class="footer-tag">Longitudinal Engine</span>
+            <span class="footer-tag">Version 1.0 MVP</span>
+        </div>
+    </footer>
+
+    <!-- Script Link -->
+    <script src="script.js"></script>
+</body>
+</html>

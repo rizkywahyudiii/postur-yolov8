@@ -94,7 +94,7 @@ def generate_pdf_report(
     {analysis['maximum_score']}<br/><br/>
 
     <b>Fatigue Start Index:</b>
-    {analysis['fatigue_start_index']}<br/><br/>
+    {analysis['fatigue_start_index'] if analysis['fatigue_start_index'] is not None else 'N/A'}<br/><br/>
 
     """
 

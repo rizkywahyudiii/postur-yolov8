@@ -5,6 +5,7 @@
 import cv2
 import math
 import numpy as np
+from collections import deque
 
 from ultralytics import YOLO
 
@@ -19,6 +20,14 @@ MODEL_PATH = (
 model = YOLO(MODEL_PATH)
 
 print("✅ Posture model loaded")
+
+
+# ============================================================
+# TEMPORAL SMOOTHING HISTORY (15-30 frames)
+# ============================================================
+
+torso_history = deque(maxlen=20)
+neck_history = deque(maxlen=20)
 
 
 # ============================================================
@@ -48,29 +57,48 @@ def analyze_posture(frame):
             kp = keypoints[0]
 
             # =================================================
+            # DEFENSIVE KEYPOINT SAFETY CHECK
+            # =================================================
+
+            if len(kp) < 4:
+
+                return annotated_frame, None
+
+            # =================================================
             # KEYPOINTS
             # =================================================
 
             x1, y1 = kp[0]  # Hip
             x2, y2 = kp[1]  # Shoulder
             x3, y3 = kp[2]  # Head
+            x4, y4 = kp[3]  # Spine
 
             # =================================================
-            # TORSO ANGLE
+            # TORSO ANGLE (WEIGHTED STRATEGY)
             # =================================================
 
-            dx = x2 - x1
-            dy = y1 - y2
-
-            torso_angle = math.degrees(
-                math.atan2(abs(dx), abs(dy))
+            # Lower torso: Hip (kp[0]) to Spine (kp[3])
+            dx_lower = x4 - x1
+            dy_lower = y1 - y4
+            lower_torso_angle = math.degrees(
+                math.atan2(abs(dx_lower), abs(dy_lower))
             )
+
+            # Upper torso: Spine (kp[3]) to Shoulder (kp[1])
+            dx_upper = x2 - x4
+            dy_upper = y4 - y2
+            upper_torso_angle = math.degrees(
+                math.atan2(abs(dx_upper), abs(dy_upper))
+            )
+
+            # Weighted torso angle favoring upper spine slouching (30% lower, 70% upper)
+            torso_angle = lower_torso_angle * 0.3 + upper_torso_angle * 0.7
 
             # =================================================
             # NECK ANGLE
             # =================================================
 
-            dx2 = x3 - x2
+            dx2 = x3 - x2  # Head to Shoulder
             dy2 = y2 - y3
 
             neck_angle = math.degrees(
@@ -78,46 +106,35 @@ def analyze_posture(frame):
             )
 
             # =================================================
-            # SCORING
+            # TEMPORAL SMOOTHING
             # =================================================
 
-            if torso_angle < 10:
+            torso_history.append(torso_angle)
+            neck_history.append(neck_angle)
 
-                torso_score = 100
+            smooth_torso_angle = sum(torso_history) / len(torso_history)
+            smooth_neck_angle = sum(neck_history) / len(neck_history)
 
-            elif torso_angle < 20:
+            # =================================================
+            # CONTINUOUS SCORING
+            # =================================================
 
-                torso_score = 70
-
-            else:
-
-                torso_score = 40
-
-            if neck_angle < 15:
-
-                neck_score = 100
-
-            elif neck_angle < 30:
-
-                neck_score = 70
-
-            else:
-
-                neck_score = 40
-
+            torso_score = max(0, 100 - torso_angle * 1.8)
+            neck_score  = max(0, 100 - neck_angle * 0.8)
             final_score = (
-                torso_score + neck_score
-            ) / 2
+                torso_score * 0.6 +
+                neck_score * 0.4
+            )
 
             # =================================================
             # STATUS
             # =================================================
 
-            if final_score >= 85:
+            if final_score >= 80:
 
                 posture_status = "Excellent"
 
-            elif final_score >= 70:
+            elif final_score >= 60:
 
                 posture_status = "Moderate"
 
@@ -131,9 +148,9 @@ def analyze_posture(frame):
 
             posture_data = {
 
-                "torso_angle": round(torso_angle, 2),
+                "torso_angle": round(smooth_torso_angle, 2),
 
-                "neck_angle": round(neck_angle, 2),
+                "neck_angle": round(smooth_neck_angle, 2),
 
                 "posture_score": round(final_score, 2),
 
