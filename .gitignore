@@ -1,7 +1,8 @@
 # Virtual environment
 venv/
+.env
 
-# Folder data
+# Folder data & runs (Model)
 data/
 data-0/
 data-1/
@@ -19,7 +20,25 @@ yolov8*.pt
 models/
 weights/
 
+# Python compiled bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.conda/
+
+# Dynamic Session Records & Reports (Generated on each session run)
+records/
+reports/
+docs/assets/latest/
+docs/assets/reports/
+
 # Cache and editor files
 .DS_Store
 .cache/
 .ipynb_checkpoints/
+.vscode/
+.idea/
+*.suo
+*.user
