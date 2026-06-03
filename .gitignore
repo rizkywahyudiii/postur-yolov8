@@ -7,7 +7,6 @@ data/
 data-0/
 data-1/
 runs/
-notebook/
 notebooks-dump/
 
 # Model weights and artifacts
