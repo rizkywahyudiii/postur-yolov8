@@ -25,7 +25,7 @@ Sistem pemantauan postur konvensional umumnya menggunakan notifikasi atau alarm 
                       [ Model YOLOv8-Pose ]
                                ↓
              [ Ekstraksi Koordinat 4 Keypoint Kustom ]
-                 (Hip, Spine, Shoulder, Head)
+                    (Head, Shoulder, Spine, Hip)
                                ↓
               [ Penyaringan Jitter 20-Frame Deque ]
                                ↓
@@ -63,7 +63,7 @@ Sistem ini memisahkan pemrosesan kualitas postur menjadi dua lapisan terintegras
 ## 3. Fitur Utama Sistem
 
 * **Real-Time Pose Estimation**: Mendeteksi letak anatomi sendi tubuh dengan model ringan YOLOv8n-pose.
-* **4-Keypoint Custom Tracking**: Melacak koordinat utama duduk: *Hip* (pinggul), *Spine* (punggung tengah), *Shoulder* (bahu), dan *Head* (kepala).
+* **4-Keypoint Custom Tracking**: Melacak koordinat utama duduk: *Head* (kepala), *Shoulder* (bahu), *Spine* (tulang belakang), dan *Hip* (pinggul).
 * **Torso & Neck Angle Analysis**: Menggabungkan inklinasi punggung bawah ($30\%$) dan punggung atas ($70\%$) agar sensitif mendeteksi bungkukan (*slouching*).
 * **Temporal Smoothing**: Menyaring *frame-to-frame sensor jitter* menggunakan filter *moving average* temporal 20 frame.
 * **Continuous Posture Scoring**: Skala penilaian kontinu linear ($0-100$) berdasarkan koefisien penalty untuk mencegah lompatan data tidak realistis pada visualisasi longitudinal.
@@ -76,7 +76,7 @@ Sistem ini memisahkan pemrosesan kualitas postur menjadi dua lapisan terintegras
 
 1. **Implementasi YOLOv8-Pose** untuk ekstraksi keypoint tubuh dalam posisi duduk secara akurat.
 2. **Kalkulasi Analitik Postur Kustom** menggunakan estimasi sudut torso bawah/atas tertimbang dan sudut leher.
-3. **Analisis Longitudinal Degradasi Postur Duduk** sebagai indikator potensi kelelahan sepanjang sesi.
+3. **Longitudinal Posture Degradation Analysis** sebagai indikator potensi kelelahan sepanjang sesi.
 4. **Otomatisasi Pelaporan Postur** terintegrasi dalam format CSV, visualisasi grafik, dan laporan PDF terstruktur.
 
 ---
@@ -85,33 +85,53 @@ Sistem ini memisahkan pemrosesan kualitas postur menjadi dua lapisan terintegras
 
 ### Spesifikasi Alur Kerja
 * **Input**: Frame kamera web (*webcam frame*).
-* **Pemrosesan (Processing)**: Model YOLOv8-Pose mendeteksi koordinat letak keypoint tubuh duduk.
+* **Pemrosesan (Processing)**: Model YOLOv8-Pose yang telah di-fine-tune mendeteksi koordinat letak keypoint tubuh duduk.
 * **Ekstraksi Fitur (Feature Extraction)**: Menghitung sudut torso ($\theta_{torso}$) dan sudut leher ($\theta_{neck}$).
 * **Analitik (Analytics)**: Rata-rata berjalan temporal, kalkulasi skor kontinu linier, penentuan status ergonomi (Excellent, Moderate, Poor), dan pemetaan tren degradasi postur duduk.
 * **Output**: Arsip CSV log, grafik longitudinal sumbu ganda (`posture_graph.png`), dan dokumen laporan PDF.
 
 ---
 
-## 6. Dataset & Image Preprocessing
+## 6. Dataset & Preprocessing
 
-Model dilatih menggunakan dataset primer berupa variasi citra posisi duduk tegak (*excellent*), membungkuk sedang (*moderate*), dan membungkuk parah (*poor*) dari sudut samping (*lateral view*).
+### Akuisisi Dataset Sekunder
+Penelitian ini menggunakan **dataset sekunder publik** (*public secondary dataset*) dari Roboflow Universe dengan detail sebagai berikut:
+* **Nama Dataset**: Sitting Posture - 4 Keypoint
+* **Sumber Repositori**: [Roboflow Universe Source](https://universe.roboflow.com/ikornproject/sitting-posture-rofqf)
+* **Tipe Data**: Dataset citra publik estimasi pose duduk manusia.
+* **Pembagian Dataset (Dataset Split)**:
 
-### Skema Koordinat 4 Keypoint Tubuh
-Anotasi diletakkan secara presisi pada 4 titik anatomi:
-1. `KP0` (Hip): Jangkar posisi duduk.
-2. `KP3` (Spine): Indikator kelenturan tulang belakang.
-3. `KP1` (Shoulder): Batas atas torso.
-4. `KP2` (Head): Penentu inklinasi leher.
+| Dataset Split | Jumlah Gambar |
+| :--- | :---: |
+| Train Set | 573 Citra |
+| Validation Set | 55 Citra |
+| Test Set | 27 Citra |
+| **Total Citra** | **655 Citra** |
+
+*Dataset yang digunakan dalam studi ini berukuran relatif terbatas, namun representatif untuk menguji dan memvalidasi alur analitik postur duduk ergonomis terlampir.*
+
+### Skema Anotasi 4 Keypoint Kustom
+Pelacakan postur ergonomis didasarkan pada 4 titik anatomi utama:
+1. **Head** (Kepala): Mengukur inklinasi tekukan leher.
+2. **Shoulder** (Bahu): Jangkar dasar leher dan batas atas punggung.
+3. **Spine** (Tulang Belakang): Titik intermediet kelenturan punggung tengah.
+4. **Hip** (Pinggul): Tumpuan dasar duduk.
 
 | Skeleton Annotation Sample | Keypoint Heatmap Distribution |
 | :---: | :---: |
 | ![Skeleton](docs/assets/dataset/sekleton-pose.png) | ![Heatmap](docs/assets/dataset/keypoint-distribution-heatmap.png) |
 
-### Preprocessing & Data Augmentation
-Untuk meningkatkan ketangguhan model terhadap variasi cahaya kamar dan latar belakang, dataset mentah diperbanyak melalui augmentasi:
-* Penyesuaian Kecerahan (*brightness modification*).
-* Peningkatan Kontras (*contrast enhancement*).
-* Rotasi Kecil ($\pm 5^\circ$) dan Filter Gaussian Noise/Blur.
+### Pra-pemrosesan Data (Preprocessing Pipeline)
+Pra-pemrosesan citra dikelola melalui sistem Roboflow:
+* **Auto-Orient**: Menormalisasi orientasi sudut gambar berdasarkan EXIF citra untuk konsistensi antar sampel.
+* **Resize (Stretch ke 640x640)**: Menyamakan resolusi citra secara paksa menjadi $640 \times 640$ piksel untuk menyesuaikan format input model YOLOv8-pose.
+
+### Augmentasi Data (Data Augmentation)
+Untuk memperkaya variasi citra dan mencegah overfitting akibat keterbatasan data latih, Roboflow dikonfigurasi untuk menghasilkan **3 variasi gambar tambahan per citra**:
+1. **Grayscale (Probabilitas 15%)**: Melatih model mengenali fitur bentuk skeletal tanpa bias warna pakaian/lingkungan.
+2. **Noise (Maksimum 1.53% dari Piksel)**: Menyisipkan noise artifisial untuk mensimulasikan noise sensor kamera berkualitas rendah.
+
+*Artefak noise yang terlihat pada beberapa citra sampel pengujian merupakan augmentasi terencana dalam persiapan dataset untuk meningkatkan keandalan model.*
 
 | Original | Normalization | Brightness | Gaussian | Rotate & Flip |
 | :---: | :---: | :---: | :---: | :---: |
@@ -234,15 +254,18 @@ Cukup buka berkas [index.html](file:///d:/cv-posture/docs/index.html) menggunaka
 ## 12. Batasan & Rencana Masa Depan
 
 ### Batasan Sistem
-1. **Dimensi Perspektif Kamera 2D**: Pengukuran sudut geometri 2D rentan terhadap distorsi perspektif jika kamera bergeser secara frontal.
-2. **Ketergantungan Sudut Kamera**: Akurasi analitik postur sangat bergantung pada penempatan posisi kamera web samping (*lateral view*).
-3. **Bukan Rekomendasi Klinis**: Skor postur merepresentasikan estimasi ergonomis dan **bukan** merupakan asesmen medis klinis terverifikasi.
-4. **Interpretasi Potensi Kelelahan**: Penilaian kelelahan (*fatigue*) didasarkan murni pada analisis kecenderungan degradasi postur, bukan berdasarkan pengukuran fisiologis langsung pada tubuh.
+1. **Keterbatasan Ukuran Dataset**: Dataset sekunder publik yang digunakan dalam studi ini terbatas pada **655 citra**.
+2. **Ketergantungan Representasi Lingkungan**: Dataset sekunder publik kemungkinan belum dapat merepresentasikan seluruh variasi kondisi duduk, pencahayaan latar, sudut kemiringan kamera, dimensi ukuran tubuh pengguna, serta kompleksitas lingkungan ruang nyata.
+3. **Dimensi Perspektif Kamera 2D**: Pengukuran sudut geometri 2D rentan terhadap distorsi perspektif jika kamera bergeser secara frontal.
+4. **Akurasi Sudut Kamera**: Keakuratan sistem analitik sangat bergantung pada penempatan posisi kamera web samping (*lateral view*).
+5. **Bukan Rekomendasi Klinis**: Skor postur merepresentasikan estimasi ergonomis dan **bukan** merupakan asesmen medis klinis terverifikasi.
+6. **Interpretasi Potensi Kelelahan**: Penilaian kelelahan (*fatigue*) didasarkan murni pada analisis kecenderungan degradasi postur, bukan berdasarkan pengukuran fisiologis langsung pada tubuh.
 
 ### Rencana Pengembangan
 * **Personalized Baseline**: Menerapkan kalibrasi postur awal yang disesuaikan dengan postur unik tiap individu sebelum pemantauan dimulai.
 * **Time-Series Forecasting**: Memprediksi degradasi tren penurunan kualitas postur duduk jangka panjang menggunakan model peramalan deret waktu.
 * **Mobile & Edge Deployment**: Mengompilasi arsitektur model menjadi format TensorRT atau ONNX agar dapat berjalan stabil pada perangkat komputasi modular.
+* **Evaluasi Dataset Lebih Luas**: Melakukan validasi sistem dengan dataset duduk yang lebih luas dan lebih bervariasi.
 
 ---
 

@@ -22,7 +22,7 @@
 **Implementasi Arsitektur YOLOv8-Pose Untuk Analitik Longitudinal Degradasi Postur Duduk Sebagai Indikator Kelelahan**
 
 ### Abstrak
-Aktivitas sedentary dalam durasi panjang di depan komputer dapat memicu penurunan kualitas postur duduk, yang berisiko menyebabkan gangguan *Musculoskeletal Disorders* (MSDs). Penelitian ini mengusulkan sebuah pendekatan *longitudinal posture analytics* berbasis *computer vision* untuk memantau kualitas postur duduk pengguna secara non-intrusif menggunakan kamera web (*webcam*). Model pembelajaran mendalam **YOLOv8-Pose** digunakan untuk mendeteksi koordinat 4 keypoint tubuh utama secara *real-time*: *Hip* (pinggul), *Shoulder* (bahu), *Head* (kepala), dan *Spine* (tulang belakang). Metode analitik postur dirancang menggunakan pembobotan sudut torso terintegrasi ($30\%$ segmen *lower torso* dari Hip-Spine dan $70\%$ segmen *upper torso* dari Spine-Shoulder) guna mengoptimalkan pendeteksian bungkukan (*slouching*) punggung atas. Jitter koordinat diredam menggunakan filter *moving average* temporal dengan jendela geser (*rolling window*) sepanjang 20 frame. Penilaian kualitas postur dilakukan menggunakan model penilaian kontinu linier (*continuous linear scoring*) untuk meminimalkan fluktuasi data yang tidak realistis pada visualisasi longitudinal. Hasil pengujian menunjukkan model YOLOv8-Pose mencapai performa evaluasi yang sangat baik dengan **mAP50 Pose sebesar 97.8%**, **Precision 98%**, **Recall 86%**, serta selisih kehilangan validasi (*Validation Loss Gap*) yang sangat rendah sebesar **0.023**. Pemantauan longitudinal mencatat dan mengekspor data performa periodik setiap 30 detik ke dalam format laporan PDF dan arsip CSV. Sistem ini tetap berjalan secara *real-time* untuk inferensi pose, sedangkan perekaman log dikonfigurasi secara periodik untuk menyajikan tren degradasi postur sebagai indikator potensi kelelahan ergonomis jangka panjang tanpa mengganggu konsentrasi pengguna.
+Aktivitas sedentary dalam durasi panjang di depan komputer dapat memicu penurunan kualitas postur duduk, yang berisiko menyebabkan gangguan *Musculoskeletal Disorders* (MSDs). Penelitian ini mengusulkan sebuah pendekatan *longitudinal posture analytics* berbasis *computer vision* untuk memantau kualitas postur duduk pengguna secara non-intrusif menggunakan kamera web (*webcam*). Model pembelajaran mendalam **YOLOv8-Pose** dilatih menggunakan dataset sekunder publik untuk mendeteksi koordinat 4 keypoint tubuh utama secara *real-time*: *Head* (kepala), *Shoulder* (bahu), *Spine* (tulang belakang), dan *Hip* (pinggul). Metode analitik postur dirancang menggunakan pembobotan sudut torso terintegrasi ($30\%$ segmen *lower torso* dari Hip-Spine dan $70\%$ segmen *upper torso* dari Spine-Shoulder) guna mengoptimalkan pendeteksian bungkukan (*slouching*) punggung atas. Jitter koordinat diredam menggunakan filter *moving average* temporal dengan jendela geser (*rolling window*) sepanjang 20 frame. Penilaian kualitas postur dilakukan menggunakan model penilaian kontinu linier (*continuous linear scoring*) untuk meminimalkan fluktuasi data yang tidak realistis pada visualisasi longitudinal. Hasil pengujian menunjukkan model YOLOv8-Pose mencapai performa evaluasi yang sangat baik dengan **mAP50 Pose sebesar 97.8%**, **Precision 98%**, **Recall 86%**, serta selisih kehilangan validasi (*Validation Loss Gap*) yang sangat rendah sebesar **0.023**. Pemantauan longitudinal mencatat dan mengekspor data performa periodik setiap 30 detik ke dalam format laporan PDF dan arsip CSV. Sistem ini menyajikan tren degradasi postur sebagai indikator potensi kelelahan ergonomis jangka panjang tanpa mengganggu konsentrasi pengguna.
 
 ---
 
@@ -34,7 +34,7 @@ Gaya hidup modern dengan durasi aktivitas sedentary yang tinggi di depan perangk
 Untuk memitigasi risiko tersebut, teknologi pemantauan postur berbasis *computer vision* mulai banyak diteliti. Sebagian besar sistem pemantauan yang ada saat ini menerapkan pendekatan *real-time alerting*, yang langsung memicu alarm atau notifikasi begitu pengguna duduk membungkuk. Namun pendekatan tersebut sering kali mengganggu fokus kognitif pengguna selama bekerja atau belajar. Berdasarkan kebutuhan tersebut, penelitian ini mengalihkan paradigma dengan menerapkan metode *longitudinal posture analytics*. Sistem melakukan perekaman dan analisis postur secara pasif di background tanpa alarm instan, serta menyajikan rangkuman visual tren perubahan postur dan degradasi ergonomis sebagai indikator potensi kelelahan (*potential indicator based on posture degradation trend*) di akhir sesi aktivitas secara longitudinal.
 
 #### 1.2 Rumusan Masalah
-1. Bagaimana menerapkan model YOLOv8-Pose untuk mendeteksi koordinat 4 keypoint tubuh duduk (*Hip*, *Spine*, *Shoulder*, dan *Head*) secara akurat dan *real-time*?
+1. Bagaimana menerapkan model YOLOv8-Pose untuk mendeteksi koordinat 4 keypoint tubuh duduk secara akurat dan *real-time*?
 2. Bagaimana menyusun formulasi sudut segmen tubuh (*torso angle* dan *neck angle*) yang sensitif terhadap *slouching* bagian atas dengan memanfaatkan keypoint tambahan *Spine*?
 3. Bagaimana mengurangi efek jitter koordinat visual (*frame-to-frame sensor jitter*) dan fluktuasi skor diskrit pada visualisasi longitudinal?
 4. Bagaimana merancang mekanisme otomatisasi sinkronisasi data visual dan ringkasan metrik dari *processing engine* ke dalam dasbor presentasi hasil riset?
@@ -56,6 +56,7 @@ Batasan masalah pada penelitian ini adalah:
 2. Sistem ini adalah sistem pemantauan postur (*posture monitoring system*), sistem analisis kualitas postur (*posture quality analysis system*), dan sistem analitik postur longitudinal (*longitudinal posture analytics system*). Sistem ini **bukan** merupakan sistem pendeteksi kelelahan biologis (*fatigue detection system*), sistem diagnosis medis (*medical diagnosis system*), maupun perangkat pemantau kesehatan klinis (*health monitoring device*). Kelelahan diinterpretasikan sebagai indikator potensi berdasarkan tren degradasi postur duduk.
 3. Input citra berasal dari kamera web (*webcam*) standar dengan sudut pandang samping (*lateral view*).
 4. Model *deep learning* yang digunakan terbatas pada arsitektur YOLOv8n-pose.
+5. Ukuran dataset sekunder terbatas (655 citra) dan performa inferensi dapat dipengaruhi oleh variasi sudut kamera, pencahayaan latar, dimensi tubuh pengguna, serta lingkungan ruangan fisik.
 
 ---
 
@@ -70,14 +71,43 @@ Batasan masalah pada penelitian ini adalah:
 ---
 
 ### 3. Dataset dan Preprocessing
-* **Spesifikasi Dataset**: Dataset primer dikumpulkan secara mandiri menggunakan webcam laptop, yang merekam variasi postur duduk tegak (*excellent*), membungkuk sedang (*moderate*), dan membungkuk parah (*poor*) dari sudut samping. Dataset asli berjumlah lebih dari 100 gambar beresolusi tinggi.
-* **Anotasi 4 Keypoint**: Dataset dianotasi secara konsisten menggunakan Roboflow pada 4 titik anatomi:
-  * `KP0` (Hip): Pinggul sebagai jangkar dasar posisi duduk.
-  * `KP1` (Shoulder): Bahu sebagai pembatas atas torso dan pangkal leher.
-  * `KP2` (Head): Kepala/telinga sebagai indikator *cervical tilt*.
-  * `KP3` (Spine): Tulang belakang tengah sebagai detektor pembengkokan punggung bawah dan atas.
-* **Augmentasi Data**: Citra diperbanyak menggunakan teknik pembesaran/penurunan kecerahan (*brightness adjustment*), kontras (*contrast enhancement*), rotasi kecil ($\pm 5^\circ$), filter Gaussian blur, Gaussian noise, serta *horizontal flip*. Ini menghasilkan dataset akhir sebesar 300+ sampel yang sangat tangguh terhadap variasi pencahayaan dan latar belakang.
-* **Preprocessing**: Sebelum dimasukkan ke model training, seluruh citra dinormalisasi dan diubah ukurannya secara seragam menjadi $640 \times 640$ piksel.
+
+#### 3.1 Akuisisi Dataset (Dataset Acquisition)
+Penelitian ini menggunakan dataset sekunder publik (*public secondary dataset*) yang diperoleh dari repositori Roboflow Universe. Dataset tersebut berjudul **Sitting Posture - 4 Keypoint** yang dirilis oleh proyek `ikornproject`.
+
+* **Tautan Sumber**: [Roboflow Universe Source](https://universe.roboflow.com/ikornproject/sitting-posture-rofqf)
+* **Tipe Data**: Dataset citra publik untuk estimasi pose duduk manusia (*sitting posture pose estimation*).
+* **Rasio Pembagian Dataset (Dataset Split)**:
+
+| Pembagian Data | Jumlah Citra |
+| :--- | :---: |
+| Data Pelatihan (Train) | 573 Gambar |
+| Data Validasi (Validation) | 55 Gambar |
+| Data Pengujian (Test) | 27 Gambar |
+| **Total Dataset** | **655 Gambar** |
+
+Meskipun ukuran dataset yang digunakan dalam studi ini tergolong terbatas (655 citra), data tersebut mewakili skenario duduk terkontrol yang sesuai untuk memvalidasi alur pemrosesan (*pipeline*) analitik postur duduk ergonomis yang kami usulkan.
+
+#### 3.2 Konfigurasi 4 Keypoint Kustom
+Dataset sekunder ini menyediakan representasi 4 titik keypoint kustom yang memetakan postur duduk pengguna secara minimalis namun komprehensif:
+1. **Head** (Kepala): Mengukur translasi dan tekukan leher.
+2. **Shoulder** (Bahu): Jangkar leher bawah dan pembatas atas torso.
+3. **Spine** (Tulang Belakang): Titik kelenturan/lengkungan punggung tengah.
+4. **Hip** (Pinggul): Titik tumpu bawah posisi duduk.
+
+Keempat titik koordinat sendi ini digunakan oleh analitik mesin untuk menghitung sudut torso, sudut leher, serta mengompilasi skor postur kontinu.
+
+#### 3.3 Pra-pemrosesan Data (Preprocessing Pipeline)
+Pra-pemrosesan citra dilakukan sepenuhnya menggunakan pipeline pra-pemrosesan bawaan Roboflow untuk menyeragamkan dimensi masukan model:
+1. **Auto-Orient**: Menormalisasi orientasi citra untuk menjaga konsistensi posisi arah duduk antar sampel gambar.
+2. **Resize (Stretch ke 640x640)**: Mengubah resolusi citra secara paksa menjadi $640 \times 640$ piksel untuk menyesuaikan dimensi masukan arsitektur YOLOv8-pose serta menstandardisasi dimensi pelatihan model.
+
+#### 3.4 Augmentasi Data (Data Augmentation)
+Untuk mengatasi keterbatasan ukuran dataset dan meningkatkan variabilitas citra selama proses pelatihan model, Roboflow digunakan untuk mengonfigurasi strategi augmentasi. Setiap gambar latih menghasilkan **3 variasi gambar tambahan**.
+1. **Grayscale (Probabilitas 15%)**: Mengubah 15% gambar latih menjadi skala abu-abu untuk melatih ketangguhan model menghadapi variasi saturasi warna dan pencahayaan ekstrem.
+2. **Noise (Maksimum 1.53% dari Piksel)**: Menyisipkan noise acak secara artifisial pada piksel citra hingga batas maksimum 1.53%. Hal ini menyimulasikan noise sensor kamera berkualitas rendah agar model tetap andal pada webcam berspesifikasi rendah.
+
+*Artefak noise yang terlihat pada beberapa contoh gambar pengujian merupakan hasil augmentasi yang sengaja disisipkan saat persiapan dataset latih untuk meningkatkan robustness model.*
 
 ---
 
@@ -94,7 +124,7 @@ Sistem pemantauan ini dirancang menggunakan dua lapisan pemrosesan yang berjalan
 ##### 2. Longitudinal Analytics
 * **Alur Pemrosesan (Pipeline)**:
   `Realtime Posture Data` ➔ `Temporal Aggregation (Smoothing)` ➔ `Periodic Sampling (Setiap 30 Detik)` ➔ `Pencatatan CSV Log` ➔ `Analisis Tren Degradasi` ➔ `Laporan PDF Sesi`.
-* **Karakteristik**: Tidak setiap frame inferensi disimpan ke database untuk mencegah overload penyimpanan. Data disampel secara periodik untuk meredam noise akibat pergerakan dinamis sementara (seperti mengambil minum atau bersandar sesaat), serta digunakan untuk memetakan pola degradasi postur sebagai indikator potensi kelelahan ergonomis.
+* **Karakteristik**: Tidak setiap frame inferensi disimpan ke database untuk mencegah overload penyimpanan. Data disampel secara periodik untuk meredam noise akibat pergerakan dinamis sementara, serta digunakan untuk memetakan pola degradasi postur sebagai indikator potensi kelelahan ergonomis.
 
 *Sistem tetap dikategorikan berjalan secara realtime karena inferensi pose dan evaluasi sudut dilakukan terus-menerus pada frame video aktif; sampling periodik hanya diterapkan untuk penyimpanan data analitik longitudinal.*
 
@@ -106,11 +136,10 @@ Sistem pemantauan ini dirancang menggunakan dua lapisan pemrosesan yang berjalan
 
 #### 4.3 Spesifikasi Metode Arsitektur
 * **Input**: Frame kamera web (*webcam frame*).
-* **Pemrosesan (Processing)**: Model YOLOv8-Pose mendeteksi koordinat letak keypoint tubuh duduk.
+* **Pemrosesan (Processing)**: Model YOLOv8-Pose yang telah di-fine-tune melakukan inferensi dan mendeteksi koordinat letak keypoint tubuh duduk.
 * **Ekstraksi Fitur (Feature Extraction)**: Menghitung sudut torso ($\theta_{torso}$) dan sudut leher ($\theta_{neck}$).
   * Sudut Torso Tertimbang (Weighted Torso Angle):
     $$\theta_{torso} = \theta_{lower\_torso} \times 0.3 + \theta_{upper\_torso} \times 0.7$$
-    * Di mana $\theta_{lower\_torso}$ dihitung dari Hip-Spine dan $\theta_{upper\_torso}$ dihitung dari Spine-Shoulder menggunakan geometri trigonometri arc tangent.
   * Sudut Leher (Neck Inclination Angle) dihitung berdasarkan kemiringan relatif kepala (*Head*) terhadap bahu (*Shoulder*).
 * **Analitik (Analytics)**: Rata-rata berjalan temporal (20-frame smoothing), kalkulasi skor kontinu linier ($Score_{final} = 0.5 \times Score_{torso} + 0.5 \times Score_{neck}$), penentuan status ergonomi (Excellent, Moderate, Poor), dan pemetaan tren degradasi postur.
 * **Output**: Arsip CSV log, grafik longitudinal sumbu ganda (`posture_graph.png`), dan dokumen laporan PDF.
@@ -129,19 +158,10 @@ Model YOLOv8n-pose dilatih menggunakan GPU NVIDIA RTX 3050. Hasil kurva loss dan
 #### 5.2 Evaluasi Pengujian Uji Coba Sesi
 Pengujian dijalankan secara longitudinal untuk mengamati degradasi postur pengguna. Pada dasbor presentasi, ringkasan sesi termuat secara otomatis dari berkas `session_summary.json` hasil sinkronisasi otomatis [docs_sync.py](file:///d:/cv-posture/app/docs_sync.py).
 
-##### Tabel Ringkasan Evaluasi Metrik Longitudinal Sesi (Contoh)
-| Parameter | Hasil Simulasi | Status Sistem | Deskripsi Fisik |
-| :--- | :--- | :--- | :--- |
-| **Waktu Sesi Selesai** | `2026-06-02 23:28:38` | Selesai | Sinkronisasi dasbor berhasil dijalankan |
-| **Rata-rata Skor Sesi**| `57.4 / 100` | Moderate | Pengguna mengalami penurunan postur rata-rata |
-| **Skor Minimum Sesi** | `18.8 / 100` | Poor | Titik terendah bungkukan parah |
-| **Skor Maksimum Sesi** | `95.5 / 100` | Excellent | Postur optimal saat awal pengerjaan |
-| **Indeks Awal Degradasi**| `Indeks #5` | Terpicu | Penurunan skor di bawah threshold 70 |
-
 ---
 
 ### 6. Kesimpulan dan Saran
-* **Kesimpulan**: Penelitian ini berhasil mengimplementasikan sistem *longitudinal posture analytics* berbasis YOLOv8-Pose. Penggunaan kombinasi segmen torso atas tertimbang ($70\%$) dan *lower torso* ($30\%$) meningkatkan akurasi deteksi bungkukan secara signifikan. Metode *smoothing* dan *continuous scoring* berhasil meredam fluktuasi grafik longitudinal, dan dasbor riset satu halaman mampu menyajikan seluruh data visual secara viewport-safe tanpa scrollbar luar.
+* **Kesimpulan**: Penelitian ini berhasil mengimplementasikan sistem *longitudinal posture analytics* berbasis YOLOv8-Pose yang di-fine-tune menggunakan dataset sekunder publik dari Roboflow. Penggunaan kombinasi segmen torso atas tertimbang ($70\%$) dan *lower torso* ($30\%$) meningkatkan akurasi deteksi bungkukan secara signifikan. Metode *smoothing* dan *continuous scoring* berhasil meredam fluktuasi grafik longitudinal, dan dasbor riset satu halaman mampu menyajikan seluruh data visual secara viewport-safe tanpa scrollbar luar.
 * **Saran**: Penelitian selanjutnya dapat mengintegrasikan data kedalaman (*depth map*) untuk mendeteksi rotasi lateral tubuh, serta mengoptimalkan model agar dapat berjalan pada prosesor berbasis *edge devices* berspesifikasi lebih rendah.
 
 ---
@@ -175,25 +195,28 @@ Sidang dibatasi maksimal **20 menit** dengan total **12 slide** yang dirancang p
   * Bagaimana menerapkan arsitektur YOLOv8-pose untuk mendeteksi keypoint duduk ergonomis?
   * Bagaimana memodelkan sudut kemiringan torso dan leher sebagai indikator potensi kelelahan ergonomis?
   * **Batasan Keras**: Sistem bukan alat diagnosis medis (deteksi skoliosis klinis) melainkan sistem analisis kualitas postur ergonomis.
+  * Keterbatasan dataset sekunder terbatas (655 citra) dan pengaruh variasi kamera, pencahayaan, serta dimensi tubuh.
 * **Rekomendasi Gambar**: Ikon tanda peringatan silang merah untuk "Medical Diagnosis" dan centang hijau untuk "Ergonomic Monitoring".
 * **Durasi Bicara**: 1 Menit.
 
-### Slide 4: Realtime Monitoring vs Longitudinal Analytics
-* **Tujuan Slide**: Menjelaskan perbedaan dua pemrosesan sistem agar penguji memahami kestabilan data.
+### Slide 4: Dataset Sekunder & Preprocessing
+* **Tujuan Slide**: Memaparkan akuisisi data dan konfigurasi augmentasi dari Roboflow.
 * **Poin yang Ditampilkan**:
-  * **Realtime Pose Monitoring**: Inferensi berjalan continuously per frame untuk monitor langsung.
-  * **Longitudinal Analytics**: Sampling data periodik setiap 30 detik untuk visualisasi tren jangka panjang.
-  * Mencegah overload database dan meredam noise gerakan instan sementara.
-* **Rekomendasi Gambar**: Bagan perbandingan alur pemrosesan per frame vs perekaman log periodik.
-* **Durasi Bicara**: 2 Menit.
+  * Menggunakan dataset sekunder publik "Sitting Posture - 4 Keypoint" dari Roboflow Universe.
+  * Total dataset: 655 Gambar (Train: 573, Validation: 55, Test: 27).
+  * Preprocessing: Roboflow Auto-Orient dan Resize 640x640.
+  * Augmentasi: Output 3x per citra, Grayscale (15% probabilitas), Noise (maksimum 1.53% piksel).
+* **Rekomendasi Gambar**: Sampel visual preprocessing dan augmentasi berdampingan.
+* **Durasi Bicara**: 2.5 Menit.
 
-### Slide 5: Dataset & Preprocessing
-* **Tujuan Slide**: Membuktikan keabsahan dan keandalan dataset primer yang digunakan untuk melatih model.
+### Slide 5: Metode & Arsitektur Sistem
+* **Tujuan Slide**: Memaparkan alur kerja pipeline deteksi dan pengolahan data.
 * **Poin yang Ditampilkan**:
-  * Pengumpulan dataset primer (posisi duduk tegak, membungkuk sedang, membungkuk parah).
-  * Skema Anotasi 4 Keypoint: *Hip* (KP0), *Shoulder* (KP1), *Head* (KP2), dan *Spine* (KP3).
-  * Penggunaan data augmentasi (Rotasi, Kecerahan, Noise) menghasilkan 300+ citra latih.
-* **Rekomendasi Gambar**: Gambar sampel skeletal `sekleton-pose.png` dan heatmap `keypoint-distribution-heatmap.png` berdampingan.
+  * Input: Frame webcam.
+  * Processing: YOLOv8-pose yang di-fine-tune melacak keypoint Head, Shoulder, Spine, Hip.
+  * Ekstraksi Fitur: Sudut torso tertimbang dan sudut leher.
+  * Output: CSV log periodik 30 detik, diagram grafik dual-axis, PDF report.
+* **Rekomendasi Gambar**: Diagram alur pipeline data pengolahan.
 * **Durasi Bicara**: 2 Menit.
 
 ### Slide 6: Formulasi Geometris & Sudut Torso Baru
@@ -217,7 +240,7 @@ Sidang dibatasi maksimal **20 menit** dengan total **12 slide** yang dirancang p
 ### Slide 8: Hasil Evaluasi Training YOLOv8-Pose
 * **Tujuan Slide**: Menyajikan bukti kuantitatif performa model deep learning pose estimation.
 * **Poin yang Ditampilkan**:
-  * Performa model: Pose mAP50 = **97.8%**, Precision = **98.0%**, Recall = **86.0%**.
+  * Performa model: mAP50 = **97.8%**, Precision = **98.0%**, Recall = **86.0%**.
   * Tingkat generalisasi sangat baik dengan selisih Validasi Loss sebesar **0.023**.
   * Model ringan dan efisien untuk di-deploy pada perangkat keras berspesifikasi menengah.
 * **Rekomendasi Gambar**: Grafik training `training-vs-validation-loss.png` dan `evaluation-metrics-per-epoch.png`.
@@ -288,23 +311,23 @@ Saya perlu menegaskan di awal bahwa sistem ini dirancang murni sebagai sistem an
 
 ---
 
-### [Slide 4 — Realtime Monitoring vs Longitudinal Analytics]
+### [Slide 4 — Dataset Sekunder & Preprocessing]
 **Suara Anda**:
-"Mari kita bahas struktur pemrosesan sistem kami. Sistem terdiri dari dua lapisan kerja: pertama, *Realtime Pose Monitoring* yang melakukan inferensi YOLOv8-pose per frame untuk melacak pergerakan leher dan torso secara instan. Kedua, *Longitudinal Analytics* yang menyampel data secara periodik setiap 30 detik. Pembedaan ini sangat penting untuk meredam gangguan noise akibat gerakan sementara pengguna, seperti menyandar sejenak atau mengambil minum, sehingga data analisis jangka panjang tetap akurat dan representatif."
+"Untuk melatih model YOLOv8-pose, studi ini menggunakan dataset sekunder publik yang bersumber dari Roboflow Universe dengan judul 'Sitting Posture - 4 Keypoint'. Total dataset ini berjumlah 655 citra yang dibagi menjadi 573 gambar latih, 55 gambar validasi, dan 27 gambar pengujian. 
+
+Mengingat ukuran dataset yang tergolong terbatas, kami menerapkan pipeline pra-pemrosesan data menggunakan Roboflow Auto-Orient untuk standardisasi orientasi citra dan Resize Stretch ke resolusi 640x640 piksel. Selain itu, kami menerapkan strategi data augmentasi berupa konversi skala abu-abu atau Grayscale dengan probabilitas 15% serta penyisipan Noise artifisial maksimum sebesar 1.53% piksel citra latih untuk melatih ketangguhan model menghadapi noise kamera atau webcam berkualitas rendah di lapangan."
 
 ---
 
-### [Slide 5 — Dataset & Preprocessing]
+### [Slide 5 — Metode & Arsitektur Sistem]
 **Suara Anda**:
-"Untuk menjamin keandalan model, kami menyusun dataset primer yang merekam variasi posisi duduk tegak, membungkuk sedang, hingga membungkuk parah. Anotasi dilakukan secara konsisten pada 4 keypoint utama, dengan menambahkan titik *Spine* di antara pinggul dan bahu.
-
-Melalui Roboflow, kami menerapkan data augmentasi seperti penyesuaian kecerahan, peningkatan kontras, rotasi kecil, filter blur, dan noise. Langkah ini berhasil melipatgandakan data latih menjadi lebih dari 300 citra berkualitas tinggi yang siap dipelajari oleh model, sehingga model terlatih tangguh menghadapi gangguan visual latar belakang."
+"Mari kita bahas struktur pemrosesan sistem kami. Sistem terdiri dari dua lapisan kerja: pertama, *Realtime Pose Monitoring* yang melakukan inferensi YOLOv8-pose per frame untuk melacak pergerakan Head, Shoulder, Spine, dan Hip secara instan. Kedua, *Longitudinal Analytics* yang menyampel data secara periodik setiap 30 detik. Pembedaan ini sangat penting untuk meredam gangguan noise akibat gerakan sementara pengguna, seperti menyandar sejenak atau mengambil minum, sehingga data analisis jangka panjang tetap akurat dan representatif."
 
 ---
 
-### [Slide 6 — Formulasi Sudut Torso Baru]
+### [Slide 6 — Formulasi Geometris & Sudut Torso Baru]
 **Suara Anda**:
-"Salah satu kontribusi utama penelitian ini terletak pada pemanfaatan keypoint intermediet *Spine* dalam memformulasikan sudut torso. Formula konvensional yang hanya mengukur sudut lurus dari pinggul ke bahu kurang sensitif terhadap pembengkokan punggung atas yang sering terjadi ketika seseorang menatap laptop.
+"Salah satu kontribusi utama penelitian ini terletak pada pemanfaatan keypoint Spine dalam memformulasikan sudut torso. Formula konvensional yang hanya mengukur sudut lurus dari pinggul ke bahu kurang sensitif terhadap pembengkokan punggung atas yang sering terjadi ketika seseorang menatap laptop.
 
 Oleh karena itu, kami merumuskan sudut torso baru dengan membagi punggung menjadi dua segmen: *lower torso* dari Hip ke Spine, dan *upper torso* dari Spine ke Shoulder. Kami menggabungkan keduanya menggunakan pembobotan: 30% untuk segmen bawah dan 70% untuk segmen atas. Formulasi ini terbukti jauh lebih peka dalam mendeteksi postur bungkukan leher dan punggung atas."
 
@@ -320,7 +343,7 @@ Selain itu, sistem penilaian postur konvensional yang bersifat diskrit menggunak
 
 ### [Slide 8 — Hasil Pelatihan Model]
 **Suara Anda**:
-"Berikut adalah hasil evaluasi kuantitatif dari model YOLOv8-Pose yang telah dilatih selama 150 epoch. Model berhasil mencapai tingkat presisi deteksi keypoint yang luar biasa dengan nilai **Pose mAP50 sebesar 97.8%**, **Precision sebesar 98.0%**, dan **Recall sebesar 86.0%**.
+"Berikut adalah hasil evaluasi kuantitatif dari model YOLOv8-Pose yang telah dilatih menggunakan dataset sekunder publik tersebut. Model berhasil mencapai tingkat presisi deteksi keypoint yang luar biasa dengan nilai **Pose mAP50 sebesar 97.8%**, **Precision sebesar 98.0%**, dan **Recall sebesar 86.0%**.
 
 Grafik pelatihan menunjukkan kurva loss validasi menurun secara selaras dengan kurva loss pelatihan. Nilai selisih kehilangan validasi (*Validation Loss Gap*) hanya sebesar **0.023**, membuktikan bahwa model memiliki kemampuan generalisasi yang sangat tinggi pada lingkungan pengujian baru tanpa gejala overfitting."
 
@@ -336,7 +359,7 @@ Pada halaman tab *Reports*, tren degradasi postur duduk divisualisasikan menggun
 
 ### [Slide 10 — Otomatisasi Sinkronisasi]
 **Suara Anda**:
-"Arsitektur pelaporan dirancang secara independen (*loosely coupled*) antara mesin analitik berbasis Python dengan antarmuka dasbor. Setiap kali pengguna menyelesaikan sesi kerjanya, program python secara otomatis memanggil modul [docs_sync.py](file:///d:/cv-posture/app/docs_sync.py).
+"Arsitektur pelaporan dirancang secara indeks independen (*loosely coupled*) antara mesin analitik berbasis Python dengan antarmuka dasbor. Setiap kali pengguna menyelesaikan sesi kerjanya, program python secara otomatis memanggil modul [docs_sync.py](file:///d:/cv-posture/app/docs_sync.py).
 
 Modul ini menyalin laporan data dan mengekspor metadata sesi ke dalam berkas `session_summary.json`. Halaman dasbor kemudian menggunakan Vanilla JS untuk memuat ringkasan tersebut secara dinamis. Pemisahan arsitektur ini memastikan dasbor tetap ringan, aman, dan sangat mudah di-host menggunakan layanan statis seperti GitHub Pages."
 
@@ -344,7 +367,7 @@ Modul ini menyalin laporan data dan mengekspor metadata sesi ke dalam berkas `se
 
 ### [Slide 11 — Kesimpulan & Pengembangan]
 **Suara Anda**:
-"Sebagai kesimpulan, penelitian ini berhasil mengembangkan sistem analitik postur longitudinal yang pasif dan non-intrusif. Integrasi keypoint Spine dengan metode bobot torso atas serta penilaian kontinu berhasil menyelesaikan masalah ketidakstabilan data visual longitudinal pada sistem pemantauan postur berbasis computer vision.
+"Sebagai kesimpulan, penelitian ini berhasil mengembangkan sistem analitik postur longitudinal yang pasif dan non-intrusif menggunakan fine-tuning model YOLOv8-pose pada dataset sekunder publik Roboflow. Integrasi keypoint Spine dengan metode bobot torso atas serta penilaian kontinu berhasil menyelesaikan masalah ketidakstabilan data visual longitudinal pada sistem pemantauan postur berbasis computer vision.
 
 Untuk pengembangan selanjutnya, kami merekomendasikan penambahan pelacakan berbasis baseline personal, serta optimalisasi kompilasi model Edge AI."
 
@@ -365,7 +388,7 @@ Bagian ini memuat **20 pertanyaan penting** yang sering diajukan oleh dosen peng
 ### A. Metode Machine Learning & Computer Vision (ML/CV)
 
 #### Q1: Mengapa Anda memilih arsitektur YOLOv8-Pose dibandingkan dengan model pose estimation lain seperti MediaPipe atau OpenPose?
-* **Jawaban Ideal**: "YOLOv8-Pose dipilih karena model ini mengadopsi pendekatan *single-stage detector* yang memprediksi bounding box objek sekaligus letak koordinat keypoint secara simultan dalam satu tahapan forward pass. Hal ini membuatnya jauh lebih cepat dan efisien dibandingkan OpenPose yang bertipe *multi-stage bottom-up*. Dibandingkan MediaPipe yang merupakan model generik pra-latih, YOLOv8-pose memungkinkan kita melakukan *fine-tuning* pada dataset primer spesifik posisi duduk dengan 4 keypoint kustom secara fleksibel, sehingga menghasilkan tingkat akurasi spasial yang lebih tinggi pada ruang lingkup analitik ergonomis kami."
+* **Jawaban Ideal**: "YOLOv8-Pose dipilih karena model ini mengadopsi pendekatan *single-stage detector* yang memprediksi bounding box objek sekaligus letak koordinat keypoint secara simultan dalam satu tahapan forward pass. Hal ini membuatnya jauh lebih cepat dan efisien dibandingkan OpenPose yang bertipe *multi-stage bottom-up*. Dibandingkan MediaPipe yang merupakan model generik pra-latih, YOLOv8-pose memungkinkan kita melakukan *fine-tuning* pada dataset sekunder spesifik posisi duduk dengan 4 keypoint kustom secara fleksibel, sehingga menghasilkan tingkat akurasi spasial yang lebih tinggi pada ruang lingkup analitik ergonomis kami."
 
 #### Q2: Apa fungsi dari keypoint tambahan "Spine" yang Anda introduksi ke dalam model analitik Anda?
 * **Jawaban Ideal**: "Pada model analitik postur konvensional, tulang belakang disederhanakan sebagai garis lurus dari Hip ke Shoulder. Padahal, kelelahan otot duduk paling sering memicu pembengkokan (*slouching*) pada punggung bagian atas (*thoracic/cervical*). Dengan mengintroduksi keypoint intermediet *Spine* di antara Hip dan Shoulder, kita dapat mendeteksi kurva kelenturan tulang belakang secara dinamis dengan mengukur sudut segmen atas dan bawah secara terpisah."
@@ -380,24 +403,24 @@ Bagian ini memuat **20 pertanyaan penting** yang sering diajukan oleh dosen peng
 
 ### B. Dataset dan Pelatihan (Dataset & Training)
 
-#### Q5: Bagaimana Anda memastikan dataset primer Anda bebas dari bias pengenalan latar belakang?
-* **Jawaban Ideal**: "Kami memitigasi bias tersebut sejak tahap pengumpulan dan augmentasi data. Dataset primer diambil dengan variasi latar belakang ruangan, jarak pengguna ke kamera, serta pencahayaan yang berbeda. Pada tahap augmentasi Roboflow, kami menerapkan variasi kecerahan (*brightness adjustment*) dan penambahan noise acak (*Gaussian noise*) sehingga model YOLOv8-pose terbiasa mengisolasi bentuk siluet tubuh manusia terlepas dari variasi background."
+#### Q5: Mengapa Anda memilih untuk menggunakan dataset sekunder publik dari Roboflow daripada mengumpulkan dataset primer secara mandiri?
+* **Jawaban Ideal**: "Menggunakan dataset sekunder publik seperti 'Sitting Posture - 4 Keypoint' dari Roboflow Universe menjamin standarisasi anotasi keypoint Head, Shoulder, Spine, dan Hip yang konsisten dan telah divalidasi oleh komunitas peneliti. Selain itu, dengan jumlah data latih terbagi yang terstruktur (573 latih, 55 validasi, dan 27 uji), dataset sekunder publik ini menyediakan landasan yang kuat untuk menguji dan memvalidasi alur pemrosesan analitik postur longitudinal yang kami usulkan sebelum dideploy di skenario dunia nyata."
 
-#### Q6: Mengapa Anda tidak menggunakan teknik augmentasi vertical flip pada dataset pose duduk Anda?
-* **Jawaban Ideal**: "Teknik augmentasi *vertical flip* akan memutarbalikkan posisi tubuh manusia secara vertikal (kepala di bawah, kaki di atas). Posisi ini tidak realistis secara anatomi dan tidak akan pernah ditemui dalam konteks pemantauan postur duduk ergonomis di depan komputer. Menyertakan augmentasi tersebut justru akan mengacaukan kemampuan konvergensi model dalam mendeteksi pose duduk yang wajar."
+#### Q6: Kenapa terdapat efek noise piksel pada gambar pengujian? Apakah itu merupakan kegagalan preprocessing?
+* **Jawaban Ideal**: "Efek noise piksel tersebut bukan kegagalan pra-pemrosesan, melainkan bagian dari augmentasi data piksel noise buatan (maksimum 1.53% dari piksel) yang sengaja diterapkan di Roboflow. Augmentasi ini bertujuan untuk mensimulasikan noise sensor kamera berkualitas rendah agar model YOLOv8-pose terlatih menjadi tangguh menghadapi visualisasi webcam standar di lapangan."
 
-#### Q7: Berapa rasio pembagian dataset yang Anda gunakan untuk training, validasi, dan testing?
-* **Jawaban Ideal**: "Kami membagi dataset menggunakan rasio standar industri, yaitu **70% untuk set pelatihan (train set)** guna melatih bobot model, **20% untuk set validasi (validation set)** untuk mengoptimalkan hyperparameter dan mendeteksi overfitting selama epoch berlangsung, serta **10% untuk set pengujian (test set)** yang sepenuhnya belum pernah dilihat model untuk mengukur performa evaluasi akhir."
+#### Q7: Bagaimana strategi augmentasi data menutupi keterbatasan ukuran dataset yang hanya 655 gambar?
+* **Jawaban Ideal**: "Dengan membatasi ukuran dataset pada 655 citra, kami menerapkan augmentasi Roboflow yang melipatgandakan data latih menjadi 3 kali lipat dari setiap contoh citra pelatihan. Penggunaan variasi skala abu-abu (grayscale 15% probabilitas) membantu model mempelajari fitur spasial struktur skeletal tanpa bergantung pada pola warna pakaian atau latar belakang, sementara augmentasi noise melatih toleransi model terhadap penurunan ketajaman gambar."
 
-#### Q8: Apa indikasi konkret bahwa model YOLOv8-pose yang Anda latih tidak mengalami overfitting?
-* **Jawaban Ideal**: "Indikasi utamanya terlihat pada kurva loss validasi yang mundur secara selaras dan konvergen dengan kurva loss training hingga epoch ke-150. Selain itu, nilai akhir **Validation Loss Gap** yang sangat kecil, yaitu **0.023**, membuktikan bahwa model tidak menghafal data latih melainkan berhasil mempelajari pola ekstraksi keypoint tubuh duduk secara general."
+#### Q8: Apa saja preprocessing bawaan yang Anda gunakan di Roboflow sebelum melatih model?
+* **Jawaban Ideal**: "Kami menggunakan dua pipeline pra-pemrosesan Roboflow utama: Pertama, Auto-Orient untuk menormalisasi rotasi orientasi gambar berdasarkan informasi metadata EXIF citra. Kedua, Resize Stretch ke resolusi 640x640 piksel untuk standardisasi input training YOLOv8-pose agar inferensi berjalan dengan konsistensi matematis yang optimal."
 
 ---
 
 ### C. Evaluasi Model dan Sistem (Evaluation)
 
 #### Q9: Apa arti dari nilai mAP50 Pose sebesar 97.8% pada hasil evaluasi model Anda?
-* **Jawaban Ideal**: "mAP50 (*Mean Average Precision* pada threshold IoU 0.5) Pose sebesar 97.8% mengindikasikan rata-rata akurasi prediksi koordinat keypoint tubuh oleh model memiliki tingkat tumpang tindih (*overlap*) kecocokan sebesar 97.8% dibandingkan dengan koordinat anotasi kebenaran darat (*ground truth*) pada tingkat toleransi IoU 50%. Ini membuktikan bahwa model memiliki keandalan yang sangat tinggi dalam mendeteksi koordinat Hip, Spine, Shoulder, dan Head."
+* **Jawaban Ideal**: "mAP50 (*Mean Average Precision* pada threshold IoU 0.5) Pose sebesar 97.8% mengindikasikan rata-rata akurasi prediksi koordinat keypoint tubuh oleh model memiliki tingkat tumpang tindih (*overlap*) kecocokan sebesar 97.8% dibandingkan dengan koordinat anotasi kebenaran darat (*ground truth*) pada tingkat toleransi IoU 50%. Ini membuktikan bahwa model memiliki keandalan yang sangat tinggi dalam mendeteksi koordinat Head, Shoulder, Spine, dan Hip."
 
 #### Q10: Bagaimana Anda mendefinisikan korelasi kelelahan postur duduk pada grafik longitudinal?
 * **Jawaban Ideal**: "Kelelahan tidak dideteksi secara fisiologis langsung oleh sistem. Namun, sistem mengindikasikan penurunan daya tahan ergonomis ketika skor postur kumulatif pengguna menurun secara konsisten di bawah threshold skor **70** (batas bawah kategori *Excellent* menuju *Moderate*). Indeks waktu ketika skor pertama kali menembus nilai di bawah 70 dicatat sebagai `fatigue_start_index` yang bertindak sebagai indikator potensi kelelahan ergonomis berdasarkan pola degradasi postur."
@@ -410,35 +433,19 @@ Bagian ini memuat **20 pertanyaan penting** yang sering diajukan oleh dosen peng
 
 ---
 
-### D. Implementasi dan Integrasi (Implementation)
-
-#### Q13: Bagaimana mekanisme sinkronisasi data otomatis (docs_sync.py) bekerja di akhir sesi?
-* **Jawaban Ideal**: "Di akhir sesi pemantauan (saat pengguna menekan tombol `Q` untuk keluar), aplikasi utama [main.py](file:///d:/cv-posture/app/main.py) akan memanggil modul pengekspor PDF, grafik, dan CSV. Setelah semua berkas terbuat, modul [docs_sync.py](file:///d:/cv-posture/app/docs_sync.py) dipanggil untuk menyalin berkas-berkas tersebut ke folder statis dasbor `docs/assets/latest/`. Sekaligus, ia merangkum metrik sesi ke berkas JSON `session_summary.json` yang akan dibaca secara dinamis oleh halaman dasbor."
-
-#### Q14: Mengapa Anda memisahkan data presentasi (JSON) dengan arsip logging (CSV) pada dasbor web?
-* **Jawaban Ideal**: "Pemisahan ini bertujuan untuk efisiensi performa sisi klien (*client-side performance*). Berkas CSV menyimpan ribuan baris log koordinat mentah sepanjang sesi yang berukuran besar dan lambat jika harus di-parse langsung oleh browser. Dengan meringkas hasil akhir ke dalam berkas metadata JSON yang sangat kecil (beberapa kilobita), dasbor dapat memuat data ringkasan sesi secara instan, sementara berkas CSV tetap utuh sebagai arsip unduhan mentah."
-
-#### Q15: Bagaimana dasbor web Anda menangani kondisi jika berkas data sesi terbaru belum terbentuk?
-* **Jawaban Ideal**: "Dasbor dirancang secara defensif pada file JavaScript [script.js](file:///d:/cv-posture/docs/script.js). Jika fetch ke `session_summary.json` gagal atau mengembalikan error 404, sistem akan menangkap error tersebut secara aman, mempertahankan teks metrik pada status default 'N/A', dan secara otomatis mengalihkan *source* gambar grafik serta screenshot demo ke aset citra *baseline* bawaan proyek agar halaman web tidak mengalami kerusakan visual (*broken layout*)."
-
-#### Q16: Apa kegunaan tombol pintas keyboard 'S' pada program realtime monitoring Anda?
-* **Jawaban Ideal**: "Tombol 'S' digunakan untuk mempermudah pengambilan dokumentasi demonstrasi sistem secara langsung. Saat tombol 'S' ditekan, OpenCV akan menangkap frame yang sedang ditampilkan (lengkap dengan anotasi koordinat dan skor overlay) dan langsung menulisnya ke `docs/assets/latest/latest-demo.png` untuk memperbarui visualisasi demo pada tab *Realtime* dasbor web secara instan."
-
----
-
 ### E. Pengembangan Lanjutan (Future Work)
 
-#### Q17: Mengapa posisi kamera web harus diletakkan di sudut pandang samping (lateral view)?
+#### Q13: Mengapa posisi kamera web harus diletakkan di sudut pandang samping (lateral view)?
 * **Jawaban Ideal**: "Sudut pandang samping (*lateral view*) adalah sudut pandang paling optimal untuk menganalisis kelenturan tulang belakang (*sagittal plane bending*) dan kemiringan kepala ke depan (*forward head translation*). Jika kamera diletakkan di depan (*frontal view*), efek pemendekan perspektif (*foreshortening*) membuat pendeteksian bahu condong ke depan menjadi sangat bias dan sulit dihitung secara akurat menggunakan geometri 2D."
 
-#### Q18: Bagaimana Anda berencana mengatasi keterbatasan sudut pandang samping (lateral view) ini pada penggunaan praktis sehari-hari?
+#### Q14: Bagaimana Anda berencana mengatasi keterbatasan sudut pandang samping (lateral view) ini pada penggunaan praktis sehari-hari?
 * **Jawaban Ideal**: "Pada penggunaan praktis sehari-hari, meletakkan kamera di samping pengguna memang kurang praktis. Untuk itu, pengembangan selanjutnya adalah merancang model rekonstruksi pose 3D yang mampu memproyeksikan pergerakan sendi dari sudut pandang depan (*frontal view*) ke dalam ruang 3D, atau memanfaatkan kamera sudut lebar (*wide-angle camera*) yang diletakkan di sudut meja kerja."
 
-#### Q19: Apakah model YOLOv8n-pose Anda dapat di-deploy pada platform komputasi awan (cloud) untuk pemantauan multi-user?
+#### Q15: Apakah model YOLOv8n-pose Anda dapat di-deploy pada platform komputasi awan (cloud) untuk pemantauan multi-user?
 * **Jawaban Ideal**: "Tentu bisa. Namun, karena model YOLOv8n-pose sangat ringan, melakukan inferensi di sisi klien (*local edge device*) jauh lebih direkomendasikan untuk menjaga privasi data gambar pengguna (karena citra webcam tidak perlu dikirim ke internet) serta meminimalkan biaya infrastruktur server awan yang mahal karena komputasi dilakukan secara terdistribusi di komputer masing-masing pengguna."
 
-#### Q20: Bagaimana cara mengintegrasikan sistem pemantauan postur ini ke dalam aplikasi kesehatan terintegrasi?
-* **Jawaban Ideal**: "Sistem ini dapat diekspos sebagai modul API lokal yang berjalan di latar belakang sistem operasi. Berkas ringkasan `session_summary.json` dapat dikirim secara berkala ke database terpusat aplikasi kesehatan pengguna menggunakan protokol HTTP POST. Data longitudinal tersebut kemudian dapat dikorelasikan dengan riwayat keluhan muskuloskeletal pengguna untuk menyusun program terapi rehabilitasi fisik yang disesuaikan."
+#### Q16: Bagaimana cara mengintegrasikan sistem pemantauan postur ini ke dalam aplikasi kesehatan terintegrasi?
+* **Jawaban Ideal**: "Sistem ini dapat ekspos sebagai modul API lokal yang berjalan di latar belakang sistem operasi. Berkas ringkasan `session_summary.json` dapat dikirim secara berkala ke database terpusat aplikasi kesehatan pengguna menggunakan protokol HTTP POST. Data longitudinal tersebut kemudian dapat dikorelasikan dengan riwayat keluhan muskuloskeletal pengguna untuk menyusun program terapi rehabilitasi fisik yang disesuaikan."
 
 ---
 
@@ -451,7 +458,7 @@ Bagian ini menyajikan panduan taktis untuk memaksimalkan perolehan nilai sidang 
 ### A. Kualitas Presentasi & Komunikasi (Bobot 25%)
 * **Strategi Nilai Maksimal**:
   1. **Disiplin Waktu**: Pastikan durasi presentasi tidak melebihi batas waktu **20 menit**. Gunakan struktur slide yang padat (Slide 1-12) dan latih kecepatan bicara agar pas dengan durasi tiap slide.
-  2. **Gaya Komunikasi Akademis**: Hindari penggunaan istilah informal. Gunakan terminologi ilmiah seperti *analanalisis longitudinal*, *degradasi postur*, *sensor jitter*, *continuous scoring*, *lateral view*, dan *generalizability*.
+  2. **Gaya Komunikasi Akademis**: Hindari penggunaan istilah informal. Gunakan terminologi ilmiah seperti *analisis longitudinal*, *degradasi postur*, *sensor noise*, *continuous scoring*, *dataset sekunder publik*, dan *generalizability*.
   3. **Visual-Driven Presentation**: Jangan membaca teks slide secara verbatim. Fokuskan penjelasan pada diagram alur pipeline, grafik visual dual-axis, dan kurva pelatihan model.
 
 ### B. Pemahaman Teknis & Metode ML/CV (Bobot 30%)
@@ -464,7 +471,7 @@ Bagian ini menyajikan panduan taktis untuk memaksimalkan perolehan nilai sidang 
 * **Strategi Nilai Maksimal**:
   1. **Tonjolkan Metrik Performa Utama**: Hafalkan angka-angka kunci evaluasi model Anda: **mAP50 Pose (97.8%)**, **Precision (98.0%)**, **Recall (86.0%)**, dan **Loss Gap (0.023)**.
   2. **Gunakan Bukti Visual**: Saat membahas hasil evaluasi, tunjukkan grafik pelatihan `training-vs-validation-loss.png` untuk membuktikan model bebas dari overfitting.
-  3. **Kejujuran Ilmiah**: Jangan merekayasa hasil evaluasi. Posisikan keterbatasan model (seperti sensitivitas terhadap sudut kamera lateral) sebagai peluang pengembangan riset di masa depan.
+  3. **Kejujuran Ilmiah**: Jangan merekayasa hasil evaluasi. Posisikan keterbatasan model (seperti sensitivitas terhadap sudut kamera lateral dan keterbatasan ukuran dataset) sebagai peluang pengembangan riset di masa depan.
 
 ### D. Demo & Kualitas Kode (Bobot 15%)
 * **Strategi Nilai Maksimal**:
