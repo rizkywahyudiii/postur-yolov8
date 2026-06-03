@@ -190,6 +190,7 @@ cv-posture/
 │   ├── index.html              # Struktur dasbor viewport-safe dark-theme
 │   ├── style.css               # Desain glassmorphism & kolom scroll mandiri
 │   └── script.js               # Handler navigasi, tab switch, & loader JSON
+├── notebook/                   # preprocessing dan training model
 ├── records/                    # Direktori penyimpanan log CSV periodik lokal
 ├── reports/                    # Direktori penyimpanan grafik PNG & PDF lokal
 ├── test/
@@ -271,4 +272,4 @@ Cukup buka berkas [index.html](file:///d:/cv-posture/docs/index.html) menggunaka
 
 ## Author & Kontributor
 **Kelompok 4 • Kelas PSIK 23 A**
-Proyek ini dikembangkan sebagai bagian dari tugas portofolio penelitian dan showcase demonstrasi sidang bidang sistem cerdas dan computer vision.
+Proyek ini dikembangkan sebagai bagian dari tugas mata kuliah Machine Learning and Computer Vision - Ilmu Komputer UNIMED.
